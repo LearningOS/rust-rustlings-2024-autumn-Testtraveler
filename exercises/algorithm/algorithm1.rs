@@ -2,7 +2,6 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
@@ -23,19 +22,28 @@ impl<T> Node<T> {
     }
 }
 #[derive(Debug)]
-struct LinkedList<T> {
+struct LinkedList<T> 
+where
+    T: PartialEq+PartialOrd+Clone
+{
     length: u32,
     start: Option<NonNull<Node<T>>>,
     end: Option<NonNull<Node<T>>>,
 }
 
-impl<T> Default for LinkedList<T> {
+impl<T> Default for LinkedList<T> 
+where
+    T: PartialEq+PartialOrd+Clone
+{
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T> LinkedList<T> {
+impl<T> LinkedList<T>
+where
+    T: PartialEq+PartialOrd+Clone
+ {
     pub fn new() -> Self {
         Self {
             length: 0,
@@ -72,17 +80,34 @@ impl<T> LinkedList<T> {
 	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
 	{
 		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+        let mut merged_list = LinkedList::new();
+        let mut a_ptr = list_a.start;
+        let mut b_ptr = list_b.start;
+        while a_ptr.is_some() && b_ptr.is_some() {
+            if unsafe { (*a_ptr.unwrap().as_ptr()).val < (*b_ptr.unwrap().as_ptr()).val } {
+                merged_list.add(unsafe { (*a_ptr.unwrap().as_ptr()).val.clone() });
+                a_ptr = unsafe { (*a_ptr.unwrap().as_ptr()).next };
+            } else {
+                merged_list.add(unsafe { (*b_ptr.unwrap().as_ptr()).val.clone() });
+                b_ptr = unsafe { (*b_ptr.unwrap().as_ptr()).next };
+            }
         }
+        while a_ptr.is_some() {
+            merged_list.add(unsafe { (*a_ptr.unwrap().as_ptr()).val.clone() });
+            a_ptr = unsafe { (*a_ptr.unwrap().as_ptr()).next };
+        }
+        while b_ptr.is_some() {
+            merged_list.add(unsafe { (*b_ptr.unwrap().as_ptr()).val.clone() });
+            b_ptr = unsafe { (*b_ptr.unwrap().as_ptr()).next };
+        }
+        return merged_list;
+
 	}
 }
 
 impl<T> Display for LinkedList<T>
 where
-    T: Display,
+    T: Display+PartialEq+PartialOrd+Clone,
 {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match self.start {
