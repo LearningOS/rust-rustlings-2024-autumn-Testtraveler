@@ -2,14 +2,13 @@
 	heap
 	This question requires you to implement a binary heap function
 */
-// I AM NOT DONE
 
 use std::cmp::Ord;
 use std::default::Default;
 
 pub struct Heap<T>
 where
-    T: Default,
+    T: Default+Ord,
 {
     count: usize,
     items: Vec<T>,
@@ -18,7 +17,7 @@ where
 
 impl<T> Heap<T>
 where
-    T: Default,
+    T: Default+Ord,
 {
     pub fn new(comparator: fn(&T, &T) -> bool) -> Self {
         Self {
@@ -37,7 +36,9 @@ where
     }
 
     pub fn add(&mut self, value: T) {
-        //TODO
+        self.count += 1;
+        self.items.push(value);
+        self.shift_up(self.count);
     }
 
     fn parent_idx(&self, idx: usize) -> usize {
@@ -57,8 +58,44 @@ where
     }
 
     fn smallest_child_idx(&self, idx: usize) -> usize {
-        //TODO
-		0
+        // return the index of the smallest child of the element at index idx
+        if self.right_child_idx(idx) <= self.count && (self.comparator)(&self.items[self.right_child_idx(idx)], &self.items[self.left_child_idx(idx)])==true{
+            self.right_child_idx(idx)
+        }
+        else{
+            self.left_child_idx(idx)
+        }
+    }
+
+    // shift up the element at index idx to its correct position in the heap
+    fn shift_up(&mut self, mut idx: usize) {
+        // compare the element with its parent and swap if necessary
+        while self.parent_idx(idx) >= 1{
+            if (self.comparator)(&self.items[idx], &self.items[self.parent_idx(idx)]) == true{
+                let parent_idx = self.parent_idx(idx);
+                self.items.swap(idx, parent_idx);
+                idx = parent_idx;
+            }
+            else{
+                break;
+            }
+        }
+    }
+
+    // shift down the element at index idx to its correct position in the heap
+    fn shift_down(&mut self, mut idx: usize) {
+        while self.children_present(idx) == true{
+            let mut smallest_child_idx = self.smallest_child_idx(idx);
+
+            // bigger idx will down if necessary
+            if (self.comparator)(&self.items[smallest_child_idx], &self.items[idx]) == true{
+                self.items.swap(idx, smallest_child_idx);
+                idx = smallest_child_idx;
+            }
+            else{
+                break;
+            }
+        } 
     }
 }
 
@@ -79,13 +116,21 @@ where
 
 impl<T> Iterator for Heap<T>
 where
-    T: Default,
+    T: Default+Ord+Clone,
 {
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
-        //TODO
-		None
+        if self.is_empty() {
+            return None;
+        }
+        let result = self.items[1].clone();
+        self.items.swap(1, self.count);
+        self.items.remove(self.count);
+        self.count -= 1;
+        self.shift_down(1);
+
+        Some(result)
     }
 }
 

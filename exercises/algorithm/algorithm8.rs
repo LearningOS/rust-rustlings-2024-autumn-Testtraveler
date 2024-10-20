@@ -2,7 +2,6 @@
 	queue
 	This question requires you to use queues to implement the functionality of the stac
 */
-// I AM NOT DONE
 
 #[derive(Debug)]
 pub struct Queue<T> {
@@ -22,6 +21,7 @@ impl<T> Queue<T> {
 
     pub fn dequeue(&mut self) -> Result<T, &str> {
         if !self.elements.is_empty() {
+            // remove the first element from the vector and return it
             Ok(self.elements.remove(0usize))
         } else {
             Err("Queue is empty")
@@ -52,30 +52,55 @@ impl<T> Default for Queue<T> {
     }
 }
 
-pub struct myStack<T>
-{
-	//TODO
-	q1:Queue<T>,
-	q2:Queue<T>
+pub struct myStack<T> {
+    q1: Queue<T>,
+    q2: Queue<T>,
+    using_q1: bool, // Flag to indicate which queue is currently being used for pushing
 }
+
 impl<T> myStack<T> {
     pub fn new() -> Self {
         Self {
-			//TODO
-			q1:Queue::<T>::new(),
-			q2:Queue::<T>::new()
+            q1: Queue::new(),
+            q2: Queue::new(),
+            using_q1: true, // Start by using q1 for pushing
         }
     }
+
     pub fn push(&mut self, elem: T) {
-        //TODO
+        if self.using_q1 {
+            self.q1.enqueue(elem);
+        } else {
+            self.q2.enqueue(elem);
+        }
     }
+
     pub fn pop(&mut self) -> Result<T, &str> {
-        //TODO
-		Err("Stack is empty")
+        if self.is_empty() {
+            return Err("Stack is empty");
+        }
+        if self.using_q1 {
+            // Transfer all elements(except the last one) from q1 to q2 and then pop from q1
+            while self.q1.size() > 1 {
+                self.q2.enqueue(self.q1.dequeue().unwrap());
+            }
+            // After transferring, switch to using q2 for pushing
+            self.using_q1 = false;
+            self.q1.dequeue() // Pop from q1
+
+        } else {
+            // Transfer all elements(except the last one) from q2 to q1 and then pop from q2
+            while self.q2.size() > 1 {
+                self.q1.enqueue(self.q2.dequeue().unwrap());
+            }
+            // After transferring, switch to using q2 for pushing
+            self.using_q1 = true;
+            self.q2.dequeue() // Pop from q2
+        }
     }
+
     pub fn is_empty(&self) -> bool {
-		//TODO
-        true
+        self.q1.is_empty() && self.q2.is_empty()
     }
 }
 
